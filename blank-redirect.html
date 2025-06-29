@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Redirecting...</title>
+</head>
+<body>
+  <script>
+    const win = window.open("about:blank", "_blank");
+    if (win) {
+      setTimeout(() => {
+        win.location.replace("https://sauceialist.github.io/poc/spoof-ui.html");
+      }, 200);
+    } else {
+      alert("Popup blocked. Please allow popups.");
+    }
+  </script>
+</body>
+</html>
