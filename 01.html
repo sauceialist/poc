@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Geolocation Debugger</title>
+  <style>
+    :root { --bg:#0f172a; --card:#0b1220; --muted:#9ca3af; --accent:#60a5fa; --danger:#fb7185; }
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin:0; background:linear-gradient(180deg,#071020, #071826); color:#e6eef8; padding:24px; }
+    header { display:flex; gap:16px; align-items:center; margin-bottom:18px; }
+    h1 { margin:0; font-size:20px; }
+    .grid { display:grid; grid-template-columns: 360px 1fr; gap:18px; align-items:start; }
+    .card { background:rgba(255,255,255,0.03); border-radius:10px; padding:12px; box-shadow: 0 4px 12px rgba(2,6,23,0.6); }
+    label { display:block; font-size:13px; color:var(--muted); margin-top:8px; }
+    button { margin-top:10px; padding:8px 10px; border-radius:8px; border:0; cursor:pointer; background:var(--accent); color:#012; font-weight:600; }
+    button.warn { background:var(--danger); color:white; }
+    .small { font-size:13px; color:var(--muted); }
+    .status { font-weight:700; margin-top:8px; }
+    pre.log { max-height: 360px; overflow:auto; background:#020617; border-radius:8px; padding:10px; font-size:12px; color:#dbeafe; white-space:pre-wrap; }
+    .controls { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .row { display:flex; gap:8px; align-items:center; margin-top:6px; }
+    input[type="text"], input[type="number"], select { width:100%; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); color:inherit; }
+    .meta { display:flex; gap:12px; margin-top:8px; flex-wrap:wrap; }
+    .chip { padding:6px 8px; background:rgba(255,255,255,0.02); border-radius:8px; font-size:13px; color:var(--muted); }
+    footer { margin-top:14px; font-size:13px; color:var(--muted); }
+    a.link { color:var(--accent); text-decoration:none; font-weight:600; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Geolocation Debugger — Debug & Test Tool</h1>
+    <div class="small">Simpan sebagai <code>geo-debug.html</code>. Jalankan lewat <strong>HTTPS</strong> atau <strong>localhost</strong>.</div>
+  </header>
+
+  <div class="grid">
+    <!-- LEFT: Controls -->
+    <div class="card">
+      <div class="small">Status</div>
+      <div id="status" class="status">Waiting…</div>
+      <div class="meta">
+        <div class="chip" id="permState">Permission: unknown</div>
+        <div class="chip" id="attemptCount">Attempts: 0</div>
+        <div class="chip" id="lastReq">Last req: -</div>
+      </div>
+
+      <label>Options (getCurrentPosition)</label>
+      <div class="row">
+        <select id="accuracy">
+          <option value="false">enableHighAccuracy: false</option>
+          <option value="true">enableHighAccuracy: true</option>
+        </select>
+        <input id="timeout" type="number" value="10000" min="1000" step="500" />
+        <input id="maxAge" type="number" value="0" min="0" step="1000" />
+      </div>
+      <div class="small">Timeout (ms) · maximumAge (ms)</div>
+
+      <label>Retry / Watch</label>
+      <div class="row">
+        <input id="maxRetries" type="number" value="3" min="0" style="width:80px" />
+        <button id="btnRequest">Request Now</button>
+        <button id="btnWatch">Start Watch</button>
+        <button id="btnStop" style="display:none" class="warn">Stop Watch</button>
+      </div>
+
+      <label>Simulasi / Debug hooks</label>
+      <div class="row">
+        <button id="btnSimSuccess">Simulate Success</button>
+        <button id="btnSimError">Simulate Error</button>
+        <button id="btnClear" class="warn">Clear Logs</button>
+      </div>
+      <div class="small">Simulasi memanggil handler tanpa izin sebenarnya — berguna untuk pengujian UI.</div>
+
+      <label>Export / Send</label>
+      <div class="row">
+        <button id="btnExport">Download Logs</button>
+        <input id="endpoint" type="text" placeholder="Optional: Debug endpoint (POST JSON)" />
+        <button id="btnSend">Send Logs</button>
+      </div>
+
+      <hr style="margin-top:12px; opacity:0.08" />
+
+      <label>Manual trigger: fake coords</label>
+      <div class="row">
+        <input id="fakeLat" type="text" placeholder="Latitude (e.g. -6.200000)" />
+        <input id="fakeLon" type="text" placeholder="Longitude (e.g. 106.816666)" />
+      </div>
+      <div class="row">
+        <button id="btnUseFake">Use as Success</button>
+      </div>
+
+      <footer>
+        <div><strong>Note:</strong> Jangan kirim koordinat sensitif tanpa persetujuan pengguna.</div>
+        <div>Geolocation biasanya bekerja hanya pada <strong>HTTPS</strong> atau <strong>localhost</strong>.</div>
+      </footer>
+    </div>
+
+    <!-- RIGHT: Logs & Detailed Info -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div><strong>Event Log</strong><div class="small">Console-style timeline (terbaru di bawah)</div></div>
+        <div class="small">UserAgent: <span id="ua" class="small"></span></div>
+      </div>
+
+      <pre id="log" class="log" aria-live="polite"></pre>
+
+      <div style="margin-top:12px;">
+        <strong>Last Position</strong>
+        <div id="lastPos" class="small">-</div>
+
+        <strong style="margin-top:8px; display:block">Raw Details</strong>
+        <pre id="raw" class="log" style="max-height:220px"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ======= Simple in-page geolocation debugger =======
+    // Features:
+    // - Permissions API check & onchange
+    // - getCurrentPosition with configurable options
+    // - watchPosition start/stop
+    // - retries for TIMEOUT and POSITION_UNAVAILABLE
+    // - detailed in-memory logs, download & send
+    // - simulate success/error, fake coords
+    //
+    // Save as geo-debug.html and open with HTTPS or localhost.
+
+    // ---------- state ----------
+    const logEl = document.getElementById('log');
+    const rawEl = document.getElementById('raw');
+    const statusEl = document.getElementById('status');
+    const permStateEl = document.getElementById('permState');
+    const attemptEl = document.getElementById('attemptCount');
+    const lastReqEl = document.getElementById('lastReq');
+    const uaEl = document.getElementById('ua');
+
+    const btnRequest = document.getElementById('btnRequest');
+    const btnWatch = document.getElementById('btnWatch');
+    const btnStop = document.getElementById('btnStop');
+    const btnSimSuccess = document.getElementById('btnSimSuccess');
+    const btnSimError = document.getElementById('btnSimError');
+    const btnClear = document.getElementById('btnClear');
+    const btnExport = document.getElementById('btnExport');
+    const btnSend = document.getElementById('btnSend');
+    const endpointInput = document.getElementById('endpoint');
+    const btnUseFake = document.getElementById('btnUseFake');
+
+    const fakeLat = document.getElementById('fakeLat');
+    const fakeLon = document.getElementById('fakeLon');
+
+    const accuracySel = document.getElementById('accuracy');
+    const timeoutInput = document.getElementById('timeout');
+    const maxAgeInput = document.getElementById('maxAge');
+    const maxRetriesInput = document.getElementById('maxRetries');
+
+    const ua = navigator.userAgent;
+    uaEl.textContent = ua;
+
+    let logs = [];
+    let attempt = 0;
+    let maxRetries = parseInt(maxRetriesInput.value || '3', 10);
+    let lastRequestId = null;
+    let watchId = null;
+
+    function now() { return new Date().toISOString(); }
+    function pushLog(level, msg, data) {
+      const entry = { ts: now(), id: Math.random().toString(36).slice(2,9), level, msg, data };
+      logs.push(entry);
+      renderLog();
+      return entry;
+    }
+
+    function renderLog() {
+      logEl.textContent = logs.map(e => `[${e.ts}] [${e.level}] (${e.id}) ${e.msg}${e.data ? '\\n  ' + safeString(e.data) : ''}`).join('\\n\\n');
+      rawEl.textContent = JSON.stringify(logs.slice(-30), null, 2);
+      statusEl.textContent = logs.length ? logs[logs.length-1].msg : 'Waiting…';
+      attemptEl.textContent = 'Attempts: ' + attempt;
+      lastReqEl.textContent = 'Last req: ' + (lastRequestId || '-');
+    }
+
+    function safeString(d) {
+      try { return typeof d === 'string' ? d : JSON.stringify(d, replacer, 2); } catch (e) { return String(d); }
+    }
+    function replacer(key, value) {
+      // hide functions if any
+      if (typeof value === 'function') return '[Function]';
+      return value;
+    }
+
+    // ---------- Debug log helper ----------
+    function debug(level, msg, data) {
+      console[level === 'error' ? 'error' : 'log']('[GeoDbg]', level.toUpperCase(), msg, data || '');
+      pushLog(level, msg, data);
+    }
+
+    // ---------- Permission check + onchange ----------
+    async function checkPermission() {
+      if (!('geolocation' in navigator)) {
+        permStateEl.textContent = 'Geolocation: not supported';
+        debug('error', 'Geolocation API not available in this browser.');
+        return;
+      }
+      if (navigator.permissions && navigator.permissions.query) {
+        try {
+          const p = await navigator.permissions.query({ name: 'geolocation' });
+          permStateEl.textContent = 'Permission: ' + p.state;
+          debug('info', 'Permissions state read', { state: p.state });
+          p.onchange = () => {
+            permStateEl.textContent = 'Permission: ' + p.state;
+            debug('info', 'Permissions changed', { state: p.state });
+          };
+        } catch (e) {
+          debug('error', 'Permissions API query threw', e);
+          permStateEl.textContent = 'Permission: unknown (query failed)';
+        }
+      } else {
+        permStateEl.textContent = 'Permission: unknown (Permissions API not supported)';
+      }
+    }
+
+    // ---------- Main getLocation with retries ----------
+    async function requestOnLoadFlow() {
+      // Convenience entry from page load. Do not auto-trigger prompt repeatedly.
+      await checkPermission();
+      // Do not auto-request here — user triggers via button.
+    }
+
+    function buildOptions() {
+      return {
+        enableHighAccuracy: accuracySel.value === 'true',
+        timeout: Number(timeoutInput.value) || 10000,
+        maximumAge: Number(maxAgeInput.value) || 0
+      };
+    }
+
+    function getLocationManual() {
+      attempt = 0;
+      lastRequestId = null;
+      getLocationWithRetry();
+    }
+
+    function getLocationWithRetry() {
+      maxRetries = Number(maxRetriesInput.value) || 0;
+      attempt++;
+      lastRequestId = Math.random().toString(36).slice(2,9);
+      const options = buildOptions();
+      debug('info', 'getLocation called', { attempt, id: lastRequestId, options });
+      navigator.geolocation.getCurrentPosition(
+        pos => onGeoSuccess(pos, lastRequestId, options),
+        err => onGeoError(err, lastRequestId, options),
+        options
+      );
+    }
+
+    function onGeoSuccess(position, reqId, options) {
+      const d = {
+        reqId, coords: {
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          altitude: position.coords.altitude,
+          altitudeAccuracy: position.coords.altitudeAccuracy,
+          heading: position.coords.heading,
+          speed: position.coords.speed
+        },
+        timestamp: position.timestamp,
+        options
+      };
+      debug('info', 'Location obtained', d);
+      updateLastPos(d);
+    }
+
+    function onGeoError(err, reqId, options) {
+      // some browsers pass number codes; here we normalize
+      const code = err && err.code ? err.code : (err && err.name ? err.name : 'UNKNOWN');
+      const message = err && err.message ? err.message : JSON.stringify(err);
+      const d = { reqId, code, message, options };
+      debug('error', 'Geolocation error', d);
+
+      // handle retryable conditions
+      const RETRYABLE = [1 /* PERMISSION_DENIED - not retryable */, 2 /* POSITION_UNAVAILABLE */, 3 /* TIMEOUT */];
+      if (code === 2 || code === 3) {
+        if (attempt <= maxRetries) {
+          debug('info', 'Retrying due to error', { attempt, maxRetries });
+          setTimeout(getLocationWithRetry, 400 * attempt);
+          return;
+        } else {
+          debug('error', 'Max retries reached', { attempt, maxRetries });
+        }
+      }
+
+      // Show hint for permission denied specifically
+      if (code === 1) {
+        debug('error', 'Permission denied by user. Suggest changing browser settings.');
+      }
+    }
+
+    // ---------- WatchPosition ----------
+    function startWatch() {
+      if (!('geolocation' in navigator)) { debug('error','Geolocation not supported (watch)'); return; }
+      if (watchId !== null) { debug('info','Already watching', { watchId }); return; }
+      const options = buildOptions();
+      watchId = navigator.geolocation.watchPosition(
+        pos => {
+          const d = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy, ts: pos.timestamp };
+          pushLog('info', 'watchPosition update', d);
+          updateLastPos({ coords: d, timestamp: pos.timestamp, reqId: 'watch' });
+        },
+        err => {
+          pushLog('error', 'watchPosition error', { code: err.code, message: err.message });
+        },
+        options
+      );
+      debug('info', 'Started watchPosition', { watchId, options });
+      btnWatch.style.display = 'none';
+      btnStop.style.display = 'inline-block';
+    }
+    function stopWatch() {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        debug('info', 'Stopped watchPosition', { watchId });
+        watchId = null;
+      } else {
+        debug('info', 'No active watch to stop');
+      }
+      btnWatch.style.display = 'inline-block';
+      btnStop.style.display = 'none';
+    }
+
+    // ---------- simulate & fake ----------
+    function simulateSuccessFake(lat, lon) {
+      const fakePos = {
+        coords: {
+          latitude: Number(lat),
+          longitude: Number(lon),
+          accuracy: 5,
+          altitude: null,
+          altitudeAccuracy: null,
+          heading: null,
+          speed: null
+        },
+        timestamp: Date.now()
+      };
+      debug('info', 'Simulating success (fake coords)', fakePos);
+      onGeoSuccess(fakePos, 'sim-' + Math.random().toString(36).slice(2,6), { simulated: true });
+    }
+    function simulateErrorFake() {
+      const fakeErr = { code: 2, message: 'Simulated POSITION_UNAVAILABLE' };
+      debug('info', 'Simulating error', fakeErr);
+      onGeoError(fakeErr, 'sim-' + Math.random().toString(36).slice(2,6), { simulated: true });
+    }
+
+    // ---------- UI helpers ----------
+    function updateLastPos(obj) {
+      lastReqEl.textContent = String(obj.reqId || '-');
+      const coords = obj.coords || obj;
+      const txt = `Lat: ${coords.lat ?? coords.latitude ?? '-'}  Lon: ${coords.lon ?? coords.longitude ?? '-'}  (accuracy: ${coords.accuracy ?? coords.accuracy ?? '-'})  ts: ${new Date(obj.timestamp).toLocaleString()}`;
+      document.getElementById('lastPos').textContent = txt;
+    }
+
+    function downloadLogs() {
+      const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'geo-debug-logs-' + new Date().toISOString().replace(/[:.]/g,'-') + '.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      debug('info', 'Logs downloaded');
+    }
+
+    async function sendLogsToEndpoint() {
+      const ep = endpointInput.value.trim();
+      if (!ep) { debug('error','No endpoint provided'); return; }
+      try {
+        const payload = { meta: { ua, ts: now() }, logs };
+        debug('info', 'Sending logs to', ep);
+        const r = await fetch(ep, {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const text = await r.text();
+        debug('info','Send result', { status: r.status, text });
+      } catch (e) {
+        debug('error','Send failed', e);
+      }
+    }
+
+    // ---------- Wiring UI ----------
+    btnRequest.addEventListener('click', () => { getLocationManual(); });
+    btnWatch.addEventListener('click', () => { startWatch(); });
+    btnStop.addEventListener('click', () => { stopWatch(); });
+    btnSimSuccess.addEventListener('click', () => {
+      const lat = fakeLat.value || -6.200000;
+      const lon = fakeLon.value || 106.816666;
+      simulateSuccessFake(lat, lon);
+    });
+    btnSimError.addEventListener('click', simulateErrorFake);
+    btnClear.addEventListener('click', () => { logs = []; renderLog(); debug('info','Logs cleared'); });
+    btnExport.addEventListener('click', downloadLogs);
+    btnSend.addEventListener('click', sendLogsToEndpoint);
+    btnUseFake.addEventListener('click', () => {
+      const lat = fakeLat.value;
+      const lon = fakeLon.value;
+      if (!lat || !lon) { debug('error','Provide both lat and lon'); return; }
+      simulateSuccessFake(lat, lon);
+    });
+
+    // Update maxRetries live
+    maxRetriesInput.addEventListener('change', () => {
+      maxRetries = Number(maxRetriesInput.value) || 0;
+      debug('info','maxRetries updated', { maxRetries });
+    });
+
+    // Init
+    (async () => {
+      debug('info','Debugger initialized', { ua });
+      await checkPermission();
+      renderLog();
+      // Optional: automatic check on load but DO NOT auto-call getCurrentPosition to avoid surprising prompts
+      pushLog('info','Ready. Use "Request Now" to trigger permission prompt if state is "prompt".', { hint: 'Prefer user activation to avoid unsolicited prompts.' });
+    })();
+
+    // Expose some functions to window for console-driven testing
+    window.GeoDbg = {
+      logs, debug, getLocationWithRetry, startWatch, stopWatch, simulateSuccessFake, simulateErrorFake, downloadLogs
+    };
+  </script>
+</body>
+</html>
